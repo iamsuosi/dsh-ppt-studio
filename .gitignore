@@ -6,3 +6,5 @@ lib/
 .smoke-deck/
 smoke/
 .npm-cache/
+*.tgz
+package/
