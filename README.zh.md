@@ -10,6 +10,14 @@
 
 ## 安装
 
+从 npm 安装（推荐）：
+
+```bash
+dsh plugin --profile web add @iamsuosi/dsh-ppt-studio
+```
+
+从 GitHub 源码安装：
+
 ```bash
 dsh plugin --profile web add github:iamsuosi/dsh-ppt-studio
 ```

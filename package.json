@@ -1,5 +1,5 @@
 {
-  "name": "dsh-ppt-studio",
+  "name": "@iamsuosi/dsh-ppt-studio",
   "version": "0.1.0",
   "description": "Agent-first presentation studio for DeepSeek Harness: plan, draft, review and export slides from a single prompt.",
   "type": "module",
