@@ -13,7 +13,7 @@
 从 npm 安装（推荐）：
 
 ```bash
-dsh plugin --profile web add iamsuosi-dsh-ppt-studio
+dsh plugin --profile web add @iamsuosi/dsh-ppt-studio
 ```
 
 从 GitHub 源码安装：

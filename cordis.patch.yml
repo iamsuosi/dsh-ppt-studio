@@ -13,5 +13,5 @@
 #       maxSlides: 30            # safety cap
 - insert:
     - id: dsh-ppt-studio
-      name: iamsuosi-dsh-ppt-studio
+      name: '@iamsuosi/dsh-ppt-studio'
       config: {}
