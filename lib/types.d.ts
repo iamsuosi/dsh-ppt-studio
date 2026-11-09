@@ -42,6 +42,13 @@ export interface ToolDefinition {
     name: string;
     description: string;
     parameters: Record<string, unknown>;
+    output: {
+        schema: Record<string, unknown>;
+        render: (args: unknown, value: unknown) => Array<{
+            type: 'text';
+            text: string;
+        }>;
+    };
     execute: (args: any, exec: any) => Promise<any>;
 }
 //# sourceMappingURL=types.d.ts.map

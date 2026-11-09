@@ -5,6 +5,58 @@ import { DEFAULT_MAX_SLIDES, DEFAULT_THEME, DEFAULT_LANG } from './config.js'
 import type { PptStudioConfig, PptStudioCreateArgs, PptStudioCreateResult, PptStudioThemesResult, ToolDefinition } from './types.js'
 import { THEMES, THEME_IDS } from './themes.js'
 
+function oneText(text: string): Array<{ type: 'text'; text: string }> {
+  return [{ type: 'text', text }]
+}
+
+function renderCreate(value: PptStudioCreateResult): Array<{ type: 'text'; text: string }> {
+  return oneText(
+    'PPT Studio generated ' + value.slideCount + ' slides (theme ' + value.theme + ', language ' + value.lang + '):\n' +
+    'HTML: ' + value.htmlPath + '\n' +
+    'PPTX: ' + value.pptxPath + '\n' +
+    'JSON: ' + value.jsonPath,
+  )
+}
+
+function renderThemes(value: PptStudioThemesResult): Array<{ type: 'text'; text: string }> {
+  const lines = value.themes.map((theme) => '- ' + theme.id + ': ' + theme.name + ' | ' + theme.mood + ' | Best for: ' + theme.bestFor)
+  return oneText('Built-in themes:\n\n' + lines.join('\n') + '\n\nUse a theme id as the theme argument of ppt_studio_create.')
+}
+
+const createResultSchema: Record<string, unknown> = {
+  type: 'object',
+  properties: {
+    ok: { type: 'boolean' },
+    pptxPath: { type: 'string' },
+    htmlPath: { type: 'string' },
+    jsonPath: { type: 'string' },
+    slideCount: { type: 'integer' },
+    theme: { type: 'string' },
+    lang: { type: 'string' },
+  },
+  additionalProperties: true,
+}
+
+const themesResultSchema: Record<string, unknown> = {
+  type: 'object',
+  properties: {
+    themes: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          name: { type: 'string' },
+          mood: { type: 'string' },
+          bestFor: { type: 'string' },
+        },
+        additionalProperties: true,
+      },
+    },
+  },
+  additionalProperties: true,
+}
+
 export function buildTools(config: Required<PptStudioConfig>): ToolDefinition[] {
   return [
     {
@@ -24,6 +76,7 @@ export function buildTools(config: Required<PptStudioConfig>): ToolDefinition[] 
         },
         required: ['title'],
       },
+      output: { schema: createResultSchema, render: (_args: unknown, value: unknown) => renderCreate(value as PptStudioCreateResult) },
       execute: async (args: PptStudioCreateArgs, exec: any): Promise<PptStudioCreateResult> => {
         const cwd = exec?.session?.workspacePath ?? process.cwd()
         const theme = resolveTheme(args.theme ?? config.defaultTheme)
@@ -55,6 +108,7 @@ export function buildTools(config: Required<PptStudioConfig>): ToolDefinition[] 
           lang: { type: 'string', enum: ['zh', 'en'], description: 'Language for theme names' },
         },
       },
+      output: { schema: themesResultSchema, render: (_args: unknown, value: unknown) => renderThemes(value as PptStudioThemesResult) },
       execute: async (args: { lang?: 'zh' | 'en' }): Promise<PptStudioThemesResult> => {
         const lang = resolveLang(args.lang ?? config.defaultLang)
         const pick = (pair: { zh: string; en: string }) => (lang === 'en' ? pair.en : pair.zh)
