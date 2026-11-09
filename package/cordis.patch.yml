@@ -1,0 +1,17 @@
+# dsh-ppt-studio: agent-first presentation studio plugin.
+#
+# Registers tools:
+#   - ppt_studio_create   : turn a prompt or markdown into a PPTX + HTML deck
+#   - ppt_studio_themes   : list built-in themes
+#
+# Optional config:
+#   - id: dsh-ppt-studio
+#     config:
+#       outputDir: ./decks       # default output directory
+#       defaultTheme: data       # default theme id
+#       defaultLang: zh          # zh | en
+#       maxSlides: 30            # safety cap
+- insert:
+    - id: dsh-ppt-studio
+      name: 'iamsuosi-dsh-ppt-studio'
+      config: {}

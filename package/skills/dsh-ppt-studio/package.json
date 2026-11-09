@@ -1,0 +1,6 @@
+{
+  "name": "dsh-ppt-studio-skill",
+  "version": "0.1.0",
+  "description": "Standalone skill files for dsh-ppt-studio.",
+  "private": true
+}

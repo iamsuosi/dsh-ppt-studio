@@ -13,7 +13,7 @@ Agent-first presentation studio for DeepSeek Harness. Plan, draft, review and ex
 From npm (recommended):
 
 ```bash
-dsh plugin --profile web add @iamsuosi/dsh-ppt-studio
+dsh plugin --profile web add iamsuosi-dsh-ppt-studio
 ```
 
 From GitHub source:
