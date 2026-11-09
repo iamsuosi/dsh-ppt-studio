@@ -1,0 +1,70 @@
+import { parseMarkdownSlides } from './parser.js'
+import { writeDeckArtifacts } from './engine.js'
+import { resolveOutputDir, resolveTheme, resolveLang, clampInt } from './config.js'
+import { DEFAULT_MAX_SLIDES, DEFAULT_THEME, DEFAULT_LANG } from './config.js'
+import type { PptStudioConfig, PptStudioCreateArgs, PptStudioCreateResult, PptStudioThemesResult, ToolDefinition } from './types.js'
+import { THEMES, THEME_IDS } from './themes.js'
+
+export function buildTools(config: Required<PptStudioConfig>): ToolDefinition[] {
+  return [
+    {
+      name: 'ppt_studio_create',
+      description:
+        'Create a presentation from a title and Markdown content. Returns paths to the generated PPTX, HTML, and JSON manifest.',
+      parameters: {
+        type: 'object',
+        properties: {
+          title: { type: 'string', description: 'Presentation title' },
+          content: { type: 'string', description: 'Markdown outline with # and ## headings and bullet lists' },
+          theme: { type: 'string', enum: THEME_IDS, description: 'Visual theme id' },
+          lang: { type: 'string', enum: ['zh', 'en'], description: 'Language for UI labels' },
+          outputDir: { type: 'string', description: 'Optional output directory' },
+          fileName: { type: 'string', description: 'Optional base file name' },
+          maxSlides: { type: 'number', description: 'Safety cap for slide count' },
+        },
+        required: ['title'],
+      },
+      execute: async (args: PptStudioCreateArgs, exec: any): Promise<PptStudioCreateResult> => {
+        const cwd = exec?.session?.workspacePath ?? process.cwd()
+        const theme = resolveTheme(args.theme ?? config.defaultTheme)
+        const lang = resolveLang(args.lang ?? config.defaultLang)
+        const maxSlides = clampInt(args.maxSlides ?? config.maxSlides, DEFAULT_MAX_SLIDES, 3, 120)
+        const outputDir = resolveOutputDir(config, args.outputDir, cwd)
+
+        const slides = parseMarkdownSlides(args.title, args.content).slice(0, maxSlides)
+        if (slides.length === 0) {
+          throw new Error('dsh-ppt-studio: no slides could be generated from the input.')
+        }
+
+        return writeDeckArtifacts({
+          title: args.title,
+          slides,
+          theme,
+          lang,
+          outputDir,
+          fileName: args.fileName,
+        })
+      },
+    },
+    {
+      name: 'ppt_studio_themes',
+      description: 'List the built-in visual themes available for ppt_studio_create.',
+      parameters: {
+        type: 'object',
+        properties: {
+          lang: { type: 'string', enum: ['zh', 'en'], description: 'Language for theme names' },
+        },
+      },
+      execute: async (args: { lang?: 'zh' | 'en' }): Promise<PptStudioThemesResult> => {
+        const lang = resolveLang(args.lang ?? config.defaultLang)
+        const pick = (pair: { zh: string; en: string }) => (lang === 'en' ? pair.en : pair.zh)
+        return {
+          themes: THEME_IDS.map((id) => {
+            const t = THEMES[id]
+            return { id: id as any, name: pick(t.name), mood: pick(t.mood), bestFor: pick(t.bestFor) }
+          }),
+        }
+      },
+    },
+  ]
+}

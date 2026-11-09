@@ -1,0 +1,6 @@
+url: https://github.com/iamsuosi/dsh-ppt-studio
+name: iamsuosi/dsh-ppt-studio
+category: docs
+description:
+  en: 'Agent-first presentation studio: plan, draft and export HTML + PPTX decks from a prompt or Markdown outline.'
+  zh: 'Agent-first 演示文稿工作室：根据提示词或 Markdown 大纲规划、起草并导出 HTML + PPTX 演示文稿。'
