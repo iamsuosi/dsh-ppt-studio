@@ -1,6 +1,6 @@
 // DSH Web client entry for dsh-ppt-studio.
 // Distributed directly to the browser; tsc does not rewrite this file.
-window.__ModuleLoader__.load({ id: 'dsh-ppt-studio', factory: require => {
+window.__ModuleLoader__.load({ id: 'iamsuosi-dsh-ppt-studio', factory: require => {
   const React = require('react');
   const W = createWorkbenchUI(React);
   const h = React.createElement;
