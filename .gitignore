@@ -8,3 +8,5 @@ smoke/
 .npm-cache/
 *.tgz
 package/
+
+.ppt-studio/

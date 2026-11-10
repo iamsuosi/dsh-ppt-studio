@@ -1,72 +1,38 @@
 # dsh-ppt-studio
 
-Agent-first presentation studio for DeepSeek Harness. Plan, draft, review and export slide decks from a single prompt or Markdown outline.
+A presentation workbench inside DeepSeek Harness. Collect source material, prepare an outline, design free-form HTML/CSS/SVG slides with the agent, and deliver PDF, HTML, or an editable project bundle.
 
-## What it does
+[中文文档](README.zh.md) · [MVP architecture and acceptance checklist](docs/mvp.md)
 
-- `ppt_studio_create` — turn a title and Markdown content into `*.pptx`, `*.html`, and `*.json`.
-- `ppt_studio_themes` — list the five built-in visual themes.
-- Ships a `dsh-ppt-studio` skill that teaches the agent an iterative, multi-round workflow.
+## Run from source
 
-## Install
-
-From npm (recommended):
+This MVP is implemented in source and has not been published yet.
 
 ```bash
-dsh plugin --profile web add @iamsuosi/dsh-ppt-studio
+npm ci
+npm run build
+dsh plugin --profile web add /absolute/path/to/dsh-ppt-studio
 ```
 
-From GitHub source:
+Restart DSH Web and open **PPT Studio**. Create a project, paste text or upload Markdown and images, edit and confirm the outline, then design representative pages before completing the deck. AI buttons directly start DSH host sessions, with progress, feedback, cancellation and retry in the workbench. Approve the outline, then approve the representative slides before generating the rest. Tasks survive browser navigation; interrupted host tasks require an explicit retry. Scoped page revisions cannot write to other slides. Agent writes automatically appear in the workbench. The plugin uses DSH's existing model configuration; it does not store API keys.
 
-```bash
-dsh plugin --profile web add github:iamsuosi/dsh-ppt-studio
-```
-
-Restart DSH after install.
-
-## Quick start
-
-1. List themes:
-   ```
-   ppt_studio_themes
-   ```
-
-2. Create a deck:
-   ```
-   ppt_studio_create {
-     title: "Adopting Rust",
-     content: "## Why Rust?\n- Memory safety without GC\n- Fearless concurrency\n\n## Performance\n- Zero-cost abstractions\n- Predictable runtime",
-     theme: "data",
-     lang: "en"
-   }
-   ```
-
-3. Open the returned HTML path in a browser and the PPTX in PowerPoint / WPS / Keynote.
+The canvas is 1280×720 with no fixed layout taxonomy. Preview and PDF share the same static HTML renderer. Project JSON embeds sources, images and page code and can be imported for further editing. Revision history and optimistic concurrency checks protect saved work. New projects do not export PPTX; legacy `ppt_studio_create` and `ppt_studio_themes` remain compatible.
 
 ## Configuration
 
-Optional plugin config in your profile:
+Set plugin `outputDir` or `DSH_PPT_STUDIO_OUTPUT_DIR`. Projects are stored beneath `.ppt-studio/` in that directory (default: DSH process working directory), shared across this DSH instance.
 
-```yaml
-- id: dsh-ppt-studio
-  config:
-    outputDir: ./decks
-    defaultTheme: data
-    defaultLang: zh
-    maxSlides: 30
+PDF export and layout checks need local Chromium/Chrome. Set `DSH_PPT_CHROMIUM_PATH` for a custom executable; common Linux paths are detected automatically. No browser is downloaded by the package. Only in containers that require it, explicitly set `DSH_PPT_NO_SANDBOX=1`.
+
+## Test
+
+```bash
+npm run typecheck
+npm test
+DSH_TEST_URL='<authenticated DSH URL>' npm run test:e2e
 ```
 
-You can also set `DSH_PPT_STUDIO_OUTPUT_DIR` as an environment variable.
-
-## Themes
-
-| ID | Name | Mood | Best for |
-|----|------|------|----------|
-| `data` | Data Drift | futuristic, immersive | AI / research / tech launches |
-| `swiss` | Swiss Pulse | precise, rational | SaaS / data / devtools |
-| `velvet` | Velvet Standard | premium, restrained | executive / brand / investor |
-| `soft` | Soft Signal | warm, human | brand stories / training |
-| `bold` | Maximalist Type | loud, kinetic | product launches / events |
+Keep the authenticated URL private. E2E uses a real DSH host and deterministic slide writes; it does not claim to test live model generation. For opt-in live acceptance, configure DSH, set `DSH_LIVE_TEST=1`, and run `npm run test:live` with the authenticated URL. This test consumes model usage.
 
 ## License
 
