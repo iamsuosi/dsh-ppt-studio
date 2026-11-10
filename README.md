@@ -6,6 +6,14 @@ Agent-first presentation studio for DeepSeek Harness. Plan, draft, review and ex
 
 - `ppt_studio_create` — turn a title and Markdown content into `*.pptx`, `*.html`, and `*.json`.
 - `ppt_studio_themes` — list the five built-in visual themes.
+- **PPT Studio panel** (web): a two-column workbench in the DSH sidebar.
+  - Left: a live 16:9 preview with a filmstrip under it.
+  - Right, as tabs:
+    - Assistant: sends edit requests to the current session and loads the result.
+    - Markdown source: edit beside the preview.
+    - Slide inspector.
+  - Header: switch decks, pick a theme, change settings, export, present.
+- A chat card for `ppt_studio_create` results, with "Open in PPT Studio".
 - Ships a `dsh-ppt-studio` skill that teaches the agent an iterative, multi-round workflow.
 
 ## Install
@@ -56,7 +64,17 @@ Optional plugin config in your profile:
     maxSlides: 30
 ```
 
-You can also set `DSH_PPT_STUDIO_OUTPUT_DIR` as an environment variable.
+You can also set `DSH_PPT_STUDIO_OUTPUT_DIR` as an environment variable. Relative paths resolve against the session workspace. When nothing is set, decks go to the workspace itself.
+
+## Development
+
+```bash
+npm install
+npm run dev      # watch: tsc for the host plugin, esbuild for src/client → lib/client.js
+npm test
+```
+
+The browser client lives in `src/client` (TSX, React supplied by the host at runtime). It shares `src/parser.ts` and `src/themes.ts` with the host plugin, so the studio's draft preview matches what `ppt_studio_create` writes. The host plugin serves the studio over `/api/ppt-studio/*` fetch routes on the DSH connection.
 
 ## Themes
 

@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs'
 import { resolve, join } from 'node:path'
 import { deflateRawSync } from 'node:zlib'
-import type { PptStudioCreateResult, PptStudioLanguage, PptStudioSlide, PptStudioThemeId } from './types.js'
+import type { PptStudioCreateResult, PptStudioDeckManifest, PptStudioLanguage, PptStudioSlide, PptStudioThemeId } from './types.js'
 import type { Theme } from './themes.js'
 import { resolveTheme } from './themes.js'
 import { sanitizeFileName, resolveDeckFileName } from './utils.js'
@@ -14,6 +14,8 @@ export interface BuildDeckOptions {
   outputDir: string
   fileName?: string
   overwrite?: boolean
+  /** Markdown the slides came from; kept in the manifest so the deck can be reopened and edited. */
+  content?: string
 }
 
 const EMU_W = 12192000
@@ -36,7 +38,7 @@ export function writeDeckArtifacts(options: BuildDeckOptions): PptStudioCreateRe
   const html = renderDeckHtml(options.title, options.slides, theme, options.lang)
   writeFileSync(htmlPath, html, 'utf8')
 
-  const manifest = renderDeckManifest(options.title, options.slides, options.theme, options.lang)
+  const manifest = renderDeckManifest(options.title, options.slides, options.theme, options.lang, options.content)
   writeFileSync(jsonPath, JSON.stringify(manifest, null, 2), 'utf8')
 
   return {
@@ -432,12 +434,24 @@ function buildZip(entries: Record<string, Buffer>): Buffer {
   return Buffer.concat(parts)
 }
 
-export function renderDeckManifest(title: string, slides: PptStudioSlide[], theme: PptStudioThemeId, lang: PptStudioLanguage): object {
+/** Marks a JSON file as a deck manifest this plugin wrote, so the studio can list and reopen it. */
+export const DECK_MANIFEST_FORMAT = 'dsh-ppt-studio/deck@1'
+
+export function renderDeckManifest(
+  title: string,
+  slides: PptStudioSlide[],
+  theme: PptStudioThemeId,
+  lang: PptStudioLanguage,
+  content?: string,
+): PptStudioDeckManifest {
   return {
+    format: DECK_MANIFEST_FORMAT,
     title,
     theme,
     lang,
+    createdAt: new Date().toISOString(),
     slideCount: slides.length,
+    ...(content !== undefined ? { source: { content } } : {}),
     slides: slides.map((s, i) => ({ index: i + 1, layout: s.layout, title: s.title, subtitle: s.subtitle, bullets: s.bullets })),
   }
 }

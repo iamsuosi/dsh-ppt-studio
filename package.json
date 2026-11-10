@@ -17,7 +17,6 @@
   "files": [
     "lib",
     "skills",
-    "templates",
     "cordis.patch.yml",
     "README.md",
     "README.zh.md",
@@ -26,7 +25,9 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json && node scripts/build-client.mjs",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "dev": "node scripts/build-client.mjs --watch & tsc -p tsconfig.json --watch --preserveWatchOutput",
+    "dev:web": "dsh dev-web --no-open --port 18790",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.client.json",
     "test": "node test/engine.test.mjs",
     "prepare": "npm run build",
     "prepublishOnly": "npm run build"
@@ -38,7 +39,11 @@
     "client": {
       "platform": "web",
       "immediately": true,
-      "inject": []
+      "inject": [
+        "@deepseek-ai/dsh-api-session-controller",
+        "@deepseek-ai/dsh-client-ui-layout",
+        "@deepseek-ai/dsh-client-ui-tool"
+      ]
     }
   },
   "keywords": [
@@ -58,6 +63,8 @@
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "@types/react": "^18.3.31",
+    "esbuild": "^0.25.12",
     "typescript": "^5.7.0"
   },
   "repository": {

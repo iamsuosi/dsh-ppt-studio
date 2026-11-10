@@ -36,6 +36,22 @@ describe('parser', () => {
     assert.equal(slides[1].layout, 'bullets')
     assert.equal(slides[3].layout, 'closing')
   })
+
+  it('uses the leading paragraph as cover subtitle without repeating it', () => {
+    const slides = parseMarkdownSlides('Deck', 'Intro line.\n\n## A\n- one')
+    assert.equal(slides[0].subtitle, 'Intro line.')
+    assert.deepEqual(slides.map((s) => s.layout), ['cover', 'bullets', 'closing'])
+  })
+
+  it('expands a single sentence into a 3-slide mini deck', () => {
+    const slides = parseMarkdownSlides('Deck', 'Just one idea.')
+    assert.deepEqual(slides.map((s) => s.layout), ['cover', 'statement', 'closing'])
+  })
+
+  it('ignores frontmatter when picking the cover subtitle', () => {
+    const slides = parseMarkdownSlides('Deck', '---\nk: v\n---\nLead.\n\n## A\n- one')
+    assert.equal(slides[0].subtitle, 'Lead.')
+  })
 })
 
 describe('engine', () => {

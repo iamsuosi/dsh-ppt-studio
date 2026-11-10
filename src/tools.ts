@@ -71,14 +71,23 @@ export function buildTools(config: Required<PptStudioConfig>): ToolDefinition[] 
           theme: { type: 'string', enum: THEME_IDS, description: 'Visual theme id' },
           lang: { type: 'string', enum: ['zh', 'en'], description: 'Language for UI labels' },
           outputDir: { type: 'string', description: 'Optional output directory' },
-          fileName: { type: 'string', description: 'Optional base file name' },
+          fileName: { type: 'string', description: 'Optional base file name (without extension)' },
+          overwrite: { type: 'boolean', description: 'Replace an existing deck with the same fileName instead of writing a numbered copy. Use when revising a deck the user has open in PPT Studio.' },
           maxSlides: { type: 'number', description: 'Safety cap for slide count' },
         },
         required: ['title'],
       },
-      output: { schema: createResultSchema, render: (_args: unknown, value: unknown) => renderCreate(value as PptStudioCreateResult) },
+      output: {
+        schema: createResultSchema,
+        render: (_args: unknown, value: unknown) => renderCreate(value as PptStudioCreateResult),
+        // replayed with the tool/result so the chat card and PPT Studio can open the deck
+        presentationMeta: (args: unknown, value: unknown) => {
+          const v = value as PptStudioCreateResult
+          return { title: String((args as PptStudioCreateArgs)?.title ?? ''), jsonPath: v.jsonPath, htmlPath: v.htmlPath, pptxPath: v.pptxPath, slideCount: v.slideCount, theme: v.theme, lang: v.lang }
+        },
+      },
       execute: async (args: PptStudioCreateArgs, exec: any): Promise<PptStudioCreateResult> => {
-        const cwd = exec?.session?.workspacePath ?? process.cwd()
+        const cwd: string = exec?.agent?.session?.meta?.cwd ?? process.cwd()
         const theme = resolveTheme(args.theme ?? config.defaultTheme)
         const lang = resolveLang(args.lang ?? config.defaultLang)
         const maxSlides = clampInt(args.maxSlides ?? config.maxSlides, DEFAULT_MAX_SLIDES, 3, 120)
@@ -96,6 +105,8 @@ export function buildTools(config: Required<PptStudioConfig>): ToolDefinition[] 
           lang,
           outputDir,
           fileName: args.fileName,
+          overwrite: args.overwrite === true,
+          content: args.content ?? '',
         })
       },
     },
