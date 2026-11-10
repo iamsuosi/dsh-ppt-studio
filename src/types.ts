@@ -15,6 +15,7 @@ export interface PptStudioCreateArgs {
   lang?: PptStudioLanguage
   outputDir?: string
   fileName?: string
+  overwrite?: boolean
   maxSlides?: number
 }
 
@@ -23,6 +24,30 @@ export interface PptStudioSlide {
   title: string
   subtitle?: string
   bullets?: string[]
+}
+
+export interface PptStudioDeckManifest {
+  format: string
+  title: string
+  theme: PptStudioThemeId
+  lang: PptStudioLanguage
+  createdAt: string
+  slideCount: number
+  source?: { content: string }
+  slides: Array<{ index: number; layout: PptStudioSlide['layout']; title: string; subtitle?: string; bullets?: string[] }>
+}
+
+/** One deck on disk, as the studio lists it. */
+export interface PptStudioDeckEntry {
+  name: string
+  jsonPath: string
+  htmlPath: string
+  pptxPath: string
+  title: string
+  theme: PptStudioThemeId
+  lang: PptStudioLanguage
+  slideCount: number
+  updatedAt: number
 }
 
 export interface PptStudioCreateResult {
@@ -51,6 +76,7 @@ export interface ToolDefinition {
   output: {
     schema: Record<string, unknown>
     render: (args: unknown, value: unknown) => Array<{ type: 'text'; text: string }>
+    presentationMeta?: (args: unknown, value: unknown) => unknown
   }
   execute: (args: any, exec: any) => Promise<any>
 }

@@ -6,6 +6,14 @@
 
 - `ppt_studio_create` — 把标题和 Markdown 内容生成 `*.pptx`、`*.html` 与 `*.json` 三件套。
 - `ppt_studio_themes` — 列出 5 套内置视觉主题。
+- **PPT Studio 工作台**（Web）：DSH 侧栏里的两列工作台。
+  - 左列是 16:9 实时预览，下方是幻灯片条。
+  - 右列有三个标签：
+    - 助手：把修改要求发进当前会话，生成结果会自动载入。
+    - Markdown 源稿：对照预览编辑。
+    - 本页：编辑单页属性。
+  - 顶栏可以切换 deck、选择主题、修改设置、导出和演示。
+- 对话里 `ppt_studio_create` 的结果显示为卡片，可一键「在 PPT Studio 中打开」。
 - 自带 `dsh-ppt-studio` 技能，教会 agent 按「理解 → 规划 → 起草 → 生成 → 审阅 → 迭代」的流程工作。
 
 ## 安装

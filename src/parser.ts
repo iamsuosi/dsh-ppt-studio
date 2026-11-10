@@ -6,14 +6,18 @@ export function parseMarkdownSlides(titleInput: string, content?: string): PptSt
 
   const slides: PptStudioSlide[] = []
 
-  // Cover
+  // Remove YAML frontmatter before anything reads the body
+  const cleaned = body.replace(/^---[ \t]*\n[\s\S]*?\n---[ \t]*\n?/, '').trim()
+
+  // Cover: a leading paragraph (text before the first heading) becomes its subtitle
+  const lead = leadingParagraph(cleaned)
   slides.push({
     layout: 'cover',
     title,
-    subtitle: extractSubtitle(body),
+    subtitle: lead.slice(0, 160),
   })
 
-  if (!body) {
+  if (!cleaned) {
     slides.push({
       layout: 'statement',
       title: title,
@@ -26,11 +30,14 @@ export function parseMarkdownSlides(titleInput: string, content?: string): PptSt
     return slides
   }
 
-  // Remove YAML frontmatter
-  const cleaned = body.replace(/^---[ \t]*\n[\s\S]*?\n---[ \t]*\n?/, '')
-  const sections = splitSections(cleaned)
+  // The leading paragraph already lives on the cover; don't repeat it as a statement slide.
+  // A body that is nothing but that paragraph still expands into cover + statement + closing.
+  const rest = lead ? cleaned.slice(lead.length).trim() : cleaned
+  if (lead && !rest) {
+    slides.push({ layout: 'statement', title: lead })
+  }
 
-  for (const section of sections) {
+  for (const section of splitSections(rest)) {
     const slide = sectionToSlide(section)
     if (slide) slides.push(slide)
   }
@@ -47,10 +54,32 @@ export function parseMarkdownSlides(titleInput: string, content?: string): PptSt
   return slides
 }
 
-function extractSubtitle(body: string): string {
-  const firstPara = body.split(/\n\s*\n/)[0] ?? ''
+/**
+ * Write slides back as Markdown that parses to the same slides (the cover title comes from the deck title).
+ * Used to edit a single slide in the studio and to recover the source of manifests written before it was stored.
+ */
+export function serializeSlides(slides: readonly PptStudioSlide[]): string {
+  const parts: string[] = []
+  const cover = slides[0]
+  if (cover?.layout === 'cover' && cover.subtitle) parts.push(cover.subtitle)
+  for (const s of slides.slice(cover?.layout === 'cover' ? 1 : 0)) {
+    if (s.layout === 'closing' && s.title === 'Thank You') continue
+    // a lone leading paragraph expands into cover + statement; the paragraph already carries it
+    if (s.layout === 'statement' && cover?.subtitle && s.title === cover.subtitle && !s.subtitle) continue
+    if (s.layout === 'section') parts.push(`# ${s.title}${s.subtitle ? '\n' + s.subtitle : ''}`)
+    else if (s.layout === 'bullets') parts.push(`## ${s.title}\n${(s.bullets ?? []).map((b) => '- ' + b).join('\n')}`)
+    else if (s.layout === 'closing') parts.push(`## ${s.title}`)
+    else parts.push(`## ${s.title}${s.subtitle ? '\n' + s.subtitle : ''}`)
+  }
+  return parts.join('\n\n')
+}
+
+/** The first paragraph when it is plain prose before any heading or list; '' otherwise. */
+function leadingParagraph(body: string): string {
+  const firstPara = (body.split(/\n\s*\n/)[0] ?? '').trim()
   if (!firstPara || firstPara.startsWith('#')) return ''
-  return firstPara.slice(0, 160)
+  if (firstPara.split('\n').some((l) => /^\s*([-*]\s|\d+\.\s)/.test(l))) return ''
+  return firstPara
 }
 
 interface Section {
